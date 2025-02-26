@@ -1,9 +1,19 @@
-
+#include <Preferences.h>
 #include <WiFi.h>
 
-const char* ssid = "tothelobbyyougo";
-const char* password = "fuzzyocean086";
+Preferences preferences;
 
+/*const char* ssid = "tothelobbyyougo";
+const char* password = "fuzzyocean086";
+*/
+
+const char* ssid = "ACSlab";
+const char* password = "lab@ACS24";
+
+namespace credentials {
+  const char* ssid = "ACSlab";
+  const char* pass = "lab@ACS24";
+}
 
 
 void connect_to_WiFi(){
@@ -72,8 +82,27 @@ void scan_WiFi(){
 
 void setup() {
   Serial.begin(115200);
-  connect_to_WiFi();
-  scan_WiFi();
+  preferences.begin("credentials", false); // false| read and write   true| read-only
+  preferences.putString("ssid", credentials::ssid); //save key and value
+  preferences.putString("pass", credentials::pass);
+
+  char storedSSID[32];
+  char storedPass[32];
+
+  preferences.getString("ssid", "default_ssid"); 
+  preferences.getString("pass", "default_pass");
+
+  Serial.printf("stored SSID: %s\n", storedSSID);
+  Serial.printf("stored Password: %s\n", storedPass);
+  
+  preferences.end();
+  Serial.println("restarting in 10 seconds...");
+  delay(10000);
+  // Restart ESP
+  ESP.restart();
+  //connect_to_WiFi();
+
+  
 
 
 }
