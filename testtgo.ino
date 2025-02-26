@@ -92,18 +92,16 @@ void setup() {
   preferences.getString("ssid", "default_ssid"); 
   preferences.getString("pass", "default_pass");
 
-  Serial.printf("stored SSID: %s\n", storedSSID);
-  Serial.printf("stored Password: %s\n", storedPass);
+  //Serial.printf("stored SSID: %s\n", storedSSID);
+  //Serial.printf("stored Password: %s\n", storedPass);
   
   preferences.end();
-  Serial.println("restarting in 10 seconds...");
+  //Serial.println("restarting in 10 seconds...");
   delay(10000);
   // Restart ESP
+  connect_to_WiFi();
   ESP.restart();
-  //connect_to_WiFi();
-
   
-
 
 }
 
