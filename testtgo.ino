@@ -7,8 +7,11 @@ Preferences preferences;
 const char* password = "fuzzyocean086";
 */
 
-const char* ssid = "ACSlab";
-const char* password = "lab@ACS24";
+//TODO: 1- scan wifi  |  2-ask for the inputs and put them inside the namespace
+//TODO: read everything from the namespace
+
+//const char* ssid = "ACSlab";
+//const char* password = "lab@ACS24";
 
 namespace credentials {
   const char* ssid = "ACSlab";
@@ -19,7 +22,8 @@ namespace credentials {
 void connect_to_WiFi(){
   unsigned long run_time = millis();
   WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid,password);
+  //WiFi.begin(ssid,password);
+  WiFi.begin(credentials::ssid,credentials::pass);
   Serial.print("Connecting...");
   while(WiFi.status() != WL_CONNECTED && millis() - run_time < 60000){
     Serial.print('.');
@@ -31,10 +35,11 @@ void connect_to_WiFi(){
     Serial.println(WiFi.SSID());
     Serial.print("IP address : ");
     Serial.println(WiFi.localIP());
-    Serial.print("Signal Strength: ");
+    Serial.print("signal Strength: ");
     Serial.println(WiFi.RSSI());
   }else {
-    try_to_reconnect(ssid,password);
+    //try_to_reconnect(ssid,password);
+    try_to_reconnect(credentials::ssid,credentials::pass);
     delay(10000); 
   }
   
@@ -42,7 +47,8 @@ void connect_to_WiFi(){
 
 void try_to_reconnect(const char* ssid, const char* password) {
   Serial.println("attempting to reconnect...");
-  WiFi.begin(ssid, password);
+  //WiFi.begin(ssid, password);
+  WiFi.begin(credentials::ssid,credentials::pass);
 
   unsigned long reconnectStart = millis();
   while (WiFi.status() != WL_CONNECTED && millis() - reconnectStart < 30000) {
@@ -51,7 +57,7 @@ void try_to_reconnect(const char* ssid, const char* password) {
   }
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("\nreconnected successfully!");
-    Serial.print("New IP Address: ");
+    Serial.print("new IP Address: ");
     Serial.println(WiFi.localIP());
   } else {
     Serial.println("\nreconnection failed! Will retry after 10 sec!");
@@ -100,7 +106,7 @@ void setup() {
   delay(10000);
   // Restart ESP
   connect_to_WiFi();
-  ESP.restart();
+  //ESP.restart(); //TODO: make sure it remember after each dc
   
 
 }
@@ -108,7 +114,9 @@ void setup() {
 void loop() {
   if(WiFi.status() != WL_CONNECTED) {
     Serial.println("connection has been lost! reconnecting...");
-    try_to_reconnect(ssid, password);
+    //try_to_reconnect(ssid, password);
+    try_to_reconnect(credentials::ssid,credentials::pass);
+
   }
   delay(10000); //constant check 
 }
