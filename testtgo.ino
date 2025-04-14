@@ -12,6 +12,7 @@ char storedPass[32];
 bool testing_new_credentials = false;
 unsigned long test_start_time = 0;
 bool wifi_connected = false;
+bool abort_connection = false;
 
 void scan_WiFi() {
   Serial.print("Scanning...");
@@ -36,6 +37,7 @@ void scan_WiFi() {
 }
 
 void connect_to_WiFi() {
+  abort_connection = false;
   unsigned long run_time = millis();
   WiFi.mode(WIFI_STA);
   WiFi.begin(storedSSID, storedPass);
@@ -43,10 +45,29 @@ void connect_to_WiFi() {
   Serial.print("Connecting to ");
   Serial.print(storedSSID);
   Serial.print("...");
+  Serial.println("\n(Type 'abort' to cancel connection attempt)");
   
-  while(WiFi.status() != WL_CONNECTED && millis() - run_time < 60000) {
+  while(WiFi.status() != WL_CONNECTED && millis() - run_time < 60000 && !abort_connection) {
     Serial.print('.');
+    
+    // Check for abort command
+    if (Serial.available()) {
+      String input = Serial.readStringUntil('\n');
+      input.trim();
+      if (input == "abort") {
+        abort_connection = true;
+        Serial.println("\nConnection attempt aborted by user!");
+        WiFi.disconnect();
+        break;
+      }
+    }
+    
     delay(1000);
+  }
+  
+  if (abort_connection) {
+    wifi_connected = false;
+    return;
   }
   
   if(WiFi.status() == WL_CONNECTED) {
@@ -68,13 +89,33 @@ void connect_to_WiFi() {
 }
 
 void try_to_reconnect() {
+  abort_connection = false;
   Serial.println("\nAttempting to reconnect...");
+  Serial.println("(Type 'abort' to cancel reconnection attempt)");
   WiFi.begin(storedSSID, storedPass);
 
   unsigned long reconnectStart = millis();
-  while (WiFi.status() != WL_CONNECTED && millis() - reconnectStart < 30000) {
+  while (WiFi.status() != WL_CONNECTED && millis() - reconnectStart < 30000 && !abort_connection) {
     Serial.print('.');
+    
+    // Check for abort command
+    if (Serial.available()) {
+      String input = Serial.readStringUntil('\n');
+      input.trim();
+      if (input == "abort") {
+        abort_connection = true;
+        Serial.println("\nReconnection attempt aborted by user!");
+        WiFi.disconnect();
+        break;
+      }
+    }
+    
     delay(1000);
+  }
+  
+  if (abort_connection) {
+    wifi_connected = false;
+    return;
   }
   
   if (WiFi.status() == WL_CONNECTED) {
@@ -192,6 +233,17 @@ void processSerialCommands() {
     else if (command == "connect") {
       connect_to_WiFi();
     }
+    else if (command == "abort") {
+      if (WiFi.status() == WL_CONNECTED) {
+        Serial.println("Disconnecting from WiFi...");
+        WiFi.disconnect();
+        wifi_connected = false;
+        Serial.println("WiFi disconnected.");
+      } else {
+        Serial.println("Not currently connected to WiFi. Aborting any pending connection attempts.");
+        abort_connection = true;
+      }
+    }
     else if (command.startsWith("save:")) {
       int firstColon = command.indexOf(':');
       int secondColon = command.indexOf(':', firstColon + 1);
@@ -216,6 +268,7 @@ void processSerialCommands() {
       Serial.println("  status - Show WiFi connection status");
       Serial.println("  scan   - Scan for available WiFi networks");
       Serial.println("  connect - Try connecting with current credentials");
+      Serial.println("  abort  - Abort connection attempt or disconnect WiFi");
       Serial.println("  save:ssid:password - Save custom credentials");
     }
   }
@@ -240,7 +293,8 @@ void setup() {
   Serial.println("  Type 'show' to show current credentials");
   Serial.println("  Type 'status' to show WiFi connection status");
   Serial.println("  Type 'scan' to scan for available WiFi networks");
-  Serial.println("  Type 'connect' to try connecting with current credentials");  
+  Serial.println("  Type 'connect' to try connecting with current credentials");
+  Serial.println("  Type 'abort' to abort connection attempt or disconnect WiFi");
   Serial.println("  Type 'save:ssid:password' to save custom credentials");
 }
 
@@ -271,5 +325,5 @@ void loop() {
     try_to_reconnect();
   }
 
-  delay(5000);
+  delay(1000);  // Reduced delay for more responsive command processing
 }
