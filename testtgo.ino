@@ -277,7 +277,7 @@ void processSerialCommands() {
 void setup() {
   Serial.begin(115200);
   delay(1000);
-  Serial.println("\n\n--- ESP32 WiFi Manager with Persistent Credentials ---");
+  Serial.println("\n\n--- ROLESS WIFI ---");
   
   loadCredentials();
 
@@ -325,5 +325,5 @@ void loop() {
     try_to_reconnect();
   }
 
-  delay(1000);  // Reduced delay for more responsive command processing
+  delay(1000);
 }
